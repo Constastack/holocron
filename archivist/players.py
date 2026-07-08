@@ -193,3 +193,73 @@ async def profile(interaction: discord.Interaction, member: discord.Member | Non
     await interaction.response.send_message(
         embeds=embeds, files=[file], ephemeral=(target.id == interaction.user.id)
     )
+
+
+class AdminCountrySelect(discord.ui.Select):
+    def __init__(self, current_country: str):
+        options = [
+            discord.SelectOption(label=name, value=name, emoji=flag, default=(name == current_country))
+            for name, flag in COUNTRIES
+        ]
+        super().__init__(placeholder="Vyber zemi", options=options)
+
+    async def callback(self, interaction: discord.Interaction):
+        await self.view.on_country_selected(interaction, self.values[0])
+
+
+class AdminCountrySelectView(discord.ui.View):
+    def __init__(self, target: discord.Member, karabast_nick: str, name: str, surname: str, current_country: str):
+        super().__init__(timeout=300)
+        self.target = target
+        self.karabast_nick = karabast_nick
+        self.name = name
+        self.surname = surname
+        self.add_item(AdminCountrySelect(current_country))
+
+    async def on_country_selected(self, interaction: discord.Interaction, country: str):
+        db.register_player(
+            discord_id=self.target.id,
+            nick=self.target.display_name,
+            karabast_nick=self.karabast_nick,
+            name=self.name,
+            surname=self.surname,
+            country=country,
+        )
+        await interaction.response.edit_message(
+            content=f"✅ Profil hráče {self.target.mention} byl upraven.", view=None
+        )
+
+
+class AdminEditModal(discord.ui.Modal, title="Upravit profil hráče"):
+    def __init__(self, target: discord.Member, player: dict):
+        super().__init__()
+        self.target = target
+        self.current_country = player["country"]
+        self.karabast_nick = discord.ui.TextInput(
+            label="Karabast nick", default=player["karabast_nick"], max_length=100
+        )
+        self.name = discord.ui.TextInput(label="Jméno", default=player["name"], max_length=100)
+        self.surname = discord.ui.TextInput(label="Příjmení", default=player["surname"], max_length=100)
+        self.add_item(self.karabast_nick)
+        self.add_item(self.name)
+        self.add_item(self.surname)
+
+    async def on_submit(self, interaction: discord.Interaction):
+        view = AdminCountrySelectView(
+            self.target,
+            str(self.karabast_nick.value),
+            str(self.name.value),
+            str(self.surname.value),
+            self.current_country,
+        )
+        await interaction.response.send_message(
+            f"Potvrď/uprav zemi pro {self.target.mention}:", view=view, ephemeral=True
+        )
+
+
+async def edit_profile_cmd(interaction: discord.Interaction, hrac: discord.Member):
+    player = db.get_player(hrac.id)
+    if player is None or not player.get("karabast_nick"):
+        await interaction.response.send_message(f"{hrac.display_name} ještě není registrovaný/á.", ephemeral=True)
+        return
+    await interaction.response.send_modal(AdminEditModal(hrac, player))

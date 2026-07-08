@@ -353,6 +353,14 @@ async def achievement_udelit_cmd(interaction: discord.Interaction, hrac: discord
     await achievements.grant_achievement_cmd(interaction, hrac, klic)
 
 
+@bot.tree.command(name="profil-upravit", description="[Organizátor] Opraví profil hráče (překlepy apod.)")
+async def profil_upravit_cmd(interaction: discord.Interaction, hrac: discord.Member):
+    if not _is_organizer(interaction):
+        await interaction.response.send_message("Tenhle příkaz je jen pro organizátory.", ephemeral=True)
+        return
+    await players.edit_profile_cmd(interaction, hrac)
+
+
 @bot.tree.command(name="hlasovani-otevrit", description="[Organizátor] Otevře hlasování o cenu")
 async def hlasovani_otevrit_cmd(interaction: discord.Interaction, typ: Literal["community", "fair_play"]):
     if not _is_organizer(interaction):

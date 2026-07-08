@@ -33,6 +33,7 @@ HELP_TEXT_ORGANIZER = (
     "`/vysledek-opravit zapas_id vyhry1 vyhry2` — opraví a potvrdí špatný/rozporovaný výsledek\n"
     "`/hall-of-fame-live` — založí živě aktualizovaný Hall of Fame\n"
     "`/achievement-udelit hrac klic` — ručně udělí achievement (např. Community Hero)\n"
+    "`/profil-upravit hrac` — opraví profil hráče (překlepy apod.)\n"
     "`/hlasovani-otevrit typ` — otevře hlasování o Community/Fair Play Award\n"
     "`/hlasovani-vysledky typ` — uzavře hlasování a vyhlásí vítěze\n"
     "`/reminder-live` — založí živý přehled nedohraných zápasů"
