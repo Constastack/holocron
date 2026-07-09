@@ -36,10 +36,26 @@ def build_reminder_embed(season: dict) -> discord.Embed:
     return embed
 
 
+async def _delete_old_live_panel(client: discord.Client, channel_key: str, message_key: str):
+    channel_id = db.get_setting(channel_key)
+    message_id = db.get_setting(message_key)
+    if not channel_id or not message_id:
+        return
+    channel = client.get_channel(int(channel_id))
+    if channel is None:
+        return
+    try:
+        old_message = await channel.fetch_message(int(message_id))
+        await old_message.delete()
+    except (discord.NotFound, discord.Forbidden):
+        pass
+
+
 async def setup_live_reminder_cmd(interaction: discord.Interaction):
     season = db.get_active_season()
     embed = build_reminder_embed(season)
     await interaction.response.defer(ephemeral=True)
+    await _delete_old_live_panel(interaction.client, "reminder_panel_channel_id", "reminder_panel_message_id")
     try:
         message = await interaction.channel.send(embed=embed)
     except discord.Forbidden:
