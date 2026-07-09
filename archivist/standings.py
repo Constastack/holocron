@@ -29,10 +29,26 @@ async def show_standings_cmd(interaction: discord.Interaction):
     await interaction.response.send_message(embed=embed)
 
 
+async def _delete_old_live_panel(client: discord.Client, season: dict):
+    channel_id = season.get("leaderboard_channel_id")
+    message_id = season.get("leaderboard_message_id")
+    if not channel_id or not message_id:
+        return
+    channel = client.get_channel(channel_id)
+    if channel is None:
+        return
+    try:
+        old_message = await channel.fetch_message(message_id)
+        await old_message.delete()
+    except (discord.NotFound, discord.Forbidden):
+        pass
+
+
 async def setup_live_standings_cmd(interaction: discord.Interaction):
     season = db.get_active_season()
     embed = build_standings_embed(season)
     await interaction.response.defer(ephemeral=True)
+    await _delete_old_live_panel(interaction.client, season)
     try:
         message = await interaction.channel.send(embed=embed)
     except discord.Forbidden:
