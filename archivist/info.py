@@ -30,7 +30,10 @@ HELP_TEXT_ORGANIZER = (
     "`/hof-nastavit` — nastaví kanál pro oznámení nových šampionů\n"
     "`/komunita-nastavit` — nastaví kanál pro oznámení community milníků\n"
     "`/spor-nastavit` — nastaví kanál pro hlášení rozporovaných výsledků\n"
-    "`/vysledek-opravit zapas_id vyhry1 vyhry2` — opraví a potvrdí špatný/rozporovaný výsledek\n"
+    "`/vysledek-opravit zapas_id vyhry1 vyhry2` — opraví a potvrdí špatný/rozporovaný výsledek"
+)
+
+HELP_TEXT_ORGANIZER_2 = (
     "`/hall-of-fame-live` — založí živě aktualizovaný Hall of Fame\n"
     "`/achievement-udelit hrac klic` — ručně udělí achievement (např. Community Hero)\n"
     "`/profil-upravit hrac` — opraví profil hráče (překlepy apod.)\n"
@@ -190,6 +193,7 @@ async def help_cmd(interaction: discord.Interaction):
     embed = discord.Embed(title="🤖 Příkazy The Archivist")
     embed.add_field(name="Pro hráče", value=HELP_TEXT_PLAYER, inline=False)
     embed.add_field(name="Pro organizátora", value=HELP_TEXT_ORGANIZER, inline=False)
+    embed.add_field(name="Pro organizátora (pokrač.)", value=HELP_TEXT_ORGANIZER_2, inline=False)
     await interaction.response.send_message(embed=embed, ephemeral=True)
 
 
