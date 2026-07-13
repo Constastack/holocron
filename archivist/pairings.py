@@ -106,6 +106,17 @@ async def open_season_cmd(
     await info.refresh_live_season(interaction.client)
 
 
+async def show_pairings_cmd(interaction: discord.Interaction):
+    season = db.get_active_season()
+    if season["status"] not in ("in_progress", "finished"):
+        await interaction.response.send_message(
+            "Pairingy ještě nejsou vygenerované — sezóna je ve fázi registrace.", ephemeral=True
+        )
+        return
+    embed = build_pairings_embed(season, only_player_id=interaction.user.id)
+    await interaction.response.send_message(embed=embed, ephemeral=True)
+
+
 async def sign_up_cmd(interaction: discord.Interaction):
     player = db.get_player(interaction.user.id)
     if player is None or not player.get("karabast_nick"):

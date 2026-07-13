@@ -237,6 +237,11 @@ async def standings_cmd(interaction: discord.Interaction):
     await standings.show_standings_cmd(interaction)
 
 
+@bot.tree.command(name="pairingy", description="Zobrazí tvoje pairingy v aktuální sezóně")
+async def pairingy_cmd(interaction: discord.Interaction):
+    await pairings.show_pairings_cmd(interaction)
+
+
 @bot.tree.command(name="statistiky", description="Zobrazí statistiky sezóny (leadeři, báze, série výher)")
 async def statistiky_cmd(interaction: discord.Interaction):
     await stats.show_statistics_cmd(interaction)

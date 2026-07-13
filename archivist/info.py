@@ -9,6 +9,7 @@ HELP_TEXT_PLAYER = (
     "`/prihlasit` — přihlas se do aktuální sezóny\n"
     "`/odhlasit` — zruš přihlášku (jen dokud registrace běží)\n"
     "`/vysledek` — nahlas výsledek zápasu\n"
+    "`/pairingy` — zobrazí tvoje pairingy v aktuální sezóně\n"
     "`/odstoupit` — odstup ze sezóny (po vygenerování pairingů)\n"
     "`/standings` — zobraz aktuální pořadí\n"
     "`/season` — info o aktuální sezóně\n"
