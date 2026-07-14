@@ -272,12 +272,27 @@ async def _finalize_report(interaction: discord.Interaction, session: ReportSess
     )
 
     confirm_view = ConfirmMatchView(match_id, session.pairing_id, session.opponent.id)
+    confirm_text = (
+        f"{session.reporter.mention} nahlásil/a výsledek "
+        f"**{session.my_wins}:{session.opp_wins}** ve svůj prospěch "
+        f"({session.my_leader} vs {session.opp_leader}). Potvrď to prosím:"
+    )
+
+    pairing_row = db.get_pairing(session.pairing_id) if session.pairing_id is not None else None
+    is_season_stage = pairing_row is not None and pairing_row["stage"] == "season"
+
+    if is_season_stage:
+        # Season matches confirm privately over DM so results aren't broadcast to the whole channel.
+        try:
+            await session.opponent.send(content=confirm_text, view=confirm_view)
+            return
+        except discord.Forbidden:
+            pass
+
+    # Playoff matches (and DM-less fallback) stay public — bracket progress is meant to be visible,
+    # and the downstream Top Cut logic needs a real guild channel to announce into.
     await interaction.channel.send(
-        content=(
-            f"{session.opponent.mention}, {session.reporter.mention} nahlásil/a výsledek "
-            f"**{session.my_wins}:{session.opp_wins}** ve svůj prospěch "
-            f"({session.my_leader} vs {session.opp_leader}). Potvrď to prosím:"
-        ),
+        content=f"{session.opponent.mention}, {confirm_text}",
         view=confirm_view,
     )
 
