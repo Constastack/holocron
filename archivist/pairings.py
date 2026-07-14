@@ -92,7 +92,10 @@ async def open_season_cmd(
     for player_id in auto_signed_ids:
         member = interaction.guild.get_member(player_id)
         if member is None:
-            continue
+            try:
+                member = await interaction.guild.fetch_member(player_id)
+            except discord.NotFound:
+                continue
         await roles.grant_role(member, "SEASON_PLAYER_ROLE_ID", "Přihlášení do sezóny (fronta)")
         await achievements.check_veteran(interaction.guild, player_id)
         try:

@@ -94,14 +94,20 @@ async def start_report(interaction: discord.Interaction):
             if pairing_row["player1_id"] == interaction.user.id
             else pairing_row["player1_id"]
         )
-        opponent = interaction.guild.get_member(opponent_id)
-        label = opponent.display_name if opponent else f"Hráč {opponent_id}"
-        opponents_by_pairing[pairing_row["id"]] = opponent
+        opponent_player = db.get_player(opponent_id)
+        label = opponent_player["nick"] if opponent_player else f"Hráč {opponent_id}"
+        opponents_by_pairing[pairing_row["id"]] = opponent_id
         options.append(discord.SelectOption(label=label, value=str(pairing_row["id"])))
 
     async def on_pairing_choice(interaction: discord.Interaction, pairing_id_str: str):
         pairing_id = int(pairing_id_str)
-        opponent = opponents_by_pairing[pairing_id]
+        opponent_id = opponents_by_pairing[pairing_id]
+        opponent = interaction.guild.get_member(opponent_id)
+        if opponent is None:
+            try:
+                opponent = await interaction.guild.fetch_member(opponent_id)
+            except discord.NotFound:
+                opponent = None
         if opponent is None:
             await interaction.response.send_message(
                 "Soupeře se nepodařilo najít na serveru. Ozvi se organizátorovi.", ephemeral=True
