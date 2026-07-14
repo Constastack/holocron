@@ -49,6 +49,62 @@ def build_pairings_embed(season: dict, only_player_id: int | None = None) -> dis
     return embed
 
 
+async def _delete_old_live_panel(client: discord.Client, channel_key: str, message_key: str):
+    channel_id = db.get_setting(channel_key)
+    message_id = db.get_setting(message_key)
+    if not channel_id or not message_id:
+        return
+    channel = client.get_channel(int(channel_id))
+    if channel is None:
+        return
+    try:
+        old_message = await channel.fetch_message(int(message_id))
+        await old_message.delete()
+    except (discord.NotFound, discord.Forbidden):
+        pass
+
+
+async def setup_live_pairings_cmd(interaction: discord.Interaction):
+    season = db.get_active_season()
+    embed = build_pairings_embed(season)
+    await interaction.response.defer(ephemeral=True)
+    await _delete_old_live_panel(interaction.client, "pairings_panel_channel_id", "pairings_panel_message_id")
+    try:
+        message = await interaction.channel.send(embed=embed)
+    except discord.Forbidden:
+        await interaction.followup.send(
+            "❌ Nemám oprávnění psát do tohoto kanálu. Povol mi tam „Send Messages“ a „Embed Links“ a zkus to znovu.",
+            ephemeral=True,
+        )
+        return
+    db.set_setting("pairings_panel_channel_id", str(interaction.channel.id))
+    db.set_setting("pairings_panel_message_id", str(message.id))
+    await interaction.followup.send(
+        "✅ Live pairingy založeny v tomto kanálu — budou se samy aktualizovat po každém potvrzeném výsledku.",
+        ephemeral=True,
+    )
+
+
+async def refresh_live_pairings(client: discord.Client):
+    channel_id = db.get_setting("pairings_panel_channel_id")
+    message_id = db.get_setting("pairings_panel_message_id")
+    if not channel_id or not message_id:
+        return
+
+    channel = client.get_channel(int(channel_id))
+    if channel is None:
+        return
+
+    try:
+        message = await channel.fetch_message(int(message_id))
+    except (discord.NotFound, discord.Forbidden):
+        return
+
+    season = db.get_active_season()
+    embed = build_pairings_embed(season)
+    await message.edit(embed=embed)
+
+
 def _parse_dt(value: str) -> datetime:
     return datetime.strptime(value.strip(), DATE_FORMAT)
 
@@ -210,6 +266,7 @@ async def start_season_cmd(interaction: discord.Interaction):
 
     await info.refresh_live_season(interaction.client)
     await reminders.refresh_live_reminder(interaction.client, season)
+    await refresh_live_pairings(interaction.client)
 
 
 async def withdraw_cmd(interaction: discord.Interaction):
@@ -235,6 +292,7 @@ async def withdraw_cmd(interaction: discord.Interaction):
         ephemeral=True,
     )
     await reminders.refresh_live_reminder(interaction.client, db.get_active_season())
+    await refresh_live_pairings(interaction.client)
 
 
 async def _reassign_opponent(interaction: discord.Interaction, season: dict, victim_id: int):

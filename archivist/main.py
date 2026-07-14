@@ -270,6 +270,14 @@ async def standings_live_cmd(interaction: discord.Interaction):
     await standings.setup_live_standings_cmd(interaction)
 
 
+@bot.tree.command(name="pairingy-live", description="[Organizátor] Založí živě aktualizovaný přehled pairingů v tomto kanálu")
+async def pairingy_live_cmd(interaction: discord.Interaction):
+    if not _is_organizer(interaction):
+        await interaction.response.send_message("Tenhle příkaz je jen pro organizátory.", ephemeral=True)
+        return
+    await pairings.setup_live_pairings_cmd(interaction)
+
+
 @bot.tree.command(name="season-live", description="[Organizátor] Založí živě aktualizované info o sezóně v tomto kanálu")
 async def season_live_cmd(interaction: discord.Interaction):
     if not _is_organizer(interaction):

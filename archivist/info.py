@@ -25,6 +25,7 @@ HELP_TEXT_ORGANIZER = (
     "`/top-cut` — vyhodnotí Top Cut a vygeneruje pavouka\n"
     "`/tiebreak` — založí rozhodující zápas o postup\n"
     "`/standings-live` — založí živě aktualizovanou tabulku\n"
+    "`/pairingy-live` — založí živě aktualizovaný přehled pairingů\n"
     "`/season-live` — založí živě aktualizované info o sezóně\n"
     "`/statistiky-live` — založí živě aktualizované statistiky\n"
     "`/vitej-nastavit` — založí uvítací panel s tlačítky\n"

@@ -5,6 +5,7 @@ import cards
 import community
 import db
 import info
+import pairings
 import reminders
 import standings
 import stats
@@ -345,6 +346,7 @@ class ConfirmMatchView(discord.ui.View):
             await info.refresh_live_season(interaction.client)
             await stats.refresh_live_statistics(interaction.client, season)
             await reminders.refresh_live_reminder(interaction.client, season)
+            await pairings.refresh_live_pairings(interaction.client)
             match_row = db.get_confirmed_match_for_pairing(self.pairing_id)
             if match_row:
                 await achievements.check_match_played(interaction, season, match_row)
@@ -438,6 +440,7 @@ async def fix_match_cmd(interaction: discord.Interaction, zapas_id: int, vyhry1:
         await info.refresh_live_season(interaction.client)
         await stats.refresh_live_statistics(interaction.client, season)
         await reminders.refresh_live_reminder(interaction.client, season)
+        await pairings.refresh_live_pairings(interaction.client)
         await achievements.check_match_played(interaction, season, updated_match)
         await community.check_match_milestones(interaction.client)
     elif pairing_row["stage"] == "playoff":
