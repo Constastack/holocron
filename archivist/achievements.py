@@ -6,8 +6,6 @@ import discord
 import community
 import db
 
-GUILD_ID = int(os.getenv("GUILD_ID"))
-
 ACHIEVEMENTS = {
     "rookie": ("🌱", "Rookie", "První odehraný zápas"),
     "first_blood": ("🩸", "First Blood", "První výhra"),
@@ -97,7 +95,7 @@ async def _check_completion(guild: discord.Guild, season: dict, player_id: int):
 
 async def check_match_played(interaction: discord.Interaction, season: dict, match_row: dict):
     # interaction.guild is None when the confirmation happened over DM (season matches confirm privately).
-    guild = interaction.guild or interaction.client.get_guild(GUILD_ID)
+    guild = interaction.guild or interaction.client.get_guild(int(os.getenv("GUILD_ID")))
     p1, p2 = match_row["player1_id"], match_row["player2_id"]
     winner_id = p1 if match_row["player1_wins"] > match_row["player2_wins"] else p2
     winner_leader = match_row["player1_leader"] if winner_id == p1 else match_row["player2_leader"]

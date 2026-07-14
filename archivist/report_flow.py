@@ -289,8 +289,22 @@ async def _finalize_report(interaction: discord.Interaction, session: ReportSess
         except discord.Forbidden:
             pass
 
-    # Playoff matches (and DM-less fallback) stay public — bracket progress is meant to be visible,
-    # and the downstream Top Cut logic needs a real guild channel to announce into.
+        fallback_channel_id = db.get_setting("confirm_fallback_channel_id")
+        fallback_channel = (
+            interaction.client.get_channel(int(fallback_channel_id)) if fallback_channel_id else None
+        )
+        target_channel = fallback_channel or interaction.channel
+        await target_channel.send(
+            content=(
+                f"{session.opponent.mention}, {confirm_text}\n"
+                f"-# (Nešlo ti to poslat do DM, tak je to tady.)"
+            ),
+            view=confirm_view,
+        )
+        return
+
+    # Playoff matches always stay public in the channel where the result was reported —
+    # bracket progress is meant to be visible, and Top Cut announcements need a real guild channel.
     await interaction.channel.send(
         content=f"{session.opponent.mention}, {confirm_text}",
         view=confirm_view,
@@ -382,6 +396,15 @@ async def set_dispute_channel_cmd(interaction: discord.Interaction):
     db.set_setting("dispute_channel_id", str(interaction.channel.id))
     await interaction.response.send_message(
         "✅ Rozporované výsledky se od teď budou hlásit do tohoto kanálu.", ephemeral=True
+    )
+
+
+async def set_confirm_fallback_channel_cmd(interaction: discord.Interaction):
+    db.set_setting("confirm_fallback_channel_id", str(interaction.channel.id))
+    await interaction.response.send_message(
+        "✅ Pokud nepůjde poslat potvrzení výsledku do DM (soupeř je má zavřené), "
+        "bude se od teď posílat do tohoto kanálu.",
+        ephemeral=True,
     )
 
 

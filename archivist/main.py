@@ -316,6 +316,17 @@ async def spor_nastavit_cmd(interaction: discord.Interaction):
     await report_flow.set_dispute_channel_cmd(interaction)
 
 
+@bot.tree.command(
+    name="potvrzeni-nastavit",
+    description="[Organizátor] Nastaví záložní kanál pro potvrzení výsledku, když má soupeř zavřené DM",
+)
+async def potvrzeni_nastavit_cmd(interaction: discord.Interaction):
+    if not _is_organizer(interaction):
+        await interaction.response.send_message("Tenhle příkaz je jen pro organizátory.", ephemeral=True)
+        return
+    await report_flow.set_confirm_fallback_channel_cmd(interaction)
+
+
 @bot.tree.command(name="vysledek-opravit", description="[Organizátor] Opraví a potvrdí rozporovaný/špatný výsledek zápasu")
 async def vysledek_opravit_cmd(interaction: discord.Interaction, zapas_id: int, vyhry1: int, vyhry2: int):
     if not _is_organizer(interaction):

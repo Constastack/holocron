@@ -31,6 +31,7 @@ HELP_TEXT_ORGANIZER = (
     "`/hof-nastavit` — nastaví kanál pro oznámení nových šampionů\n"
     "`/komunita-nastavit` — nastaví kanál pro oznámení community milníků\n"
     "`/spor-nastavit` — nastaví kanál pro hlášení rozporovaných výsledků\n"
+    "`/potvrzeni-nastavit` — nastaví záložní kanál pro potvrzení výsledku (když soupeř má zavřené DM)\n"
     "`/vysledek-opravit zapas_id vyhry1 vyhry2` — opraví a potvrdí špatný/rozporovaný výsledek"
 )
 
