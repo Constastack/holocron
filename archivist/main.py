@@ -49,6 +49,13 @@ async def on_ready():
     bot.add_view(welcome.WelcomeView())
     bot.add_view(info.SeasonActionsView())
 
+    pending_matches = db.get_pending_matches_with_confirm_message()
+    for match in pending_matches:
+        view = report_flow.ConfirmMatchView(match["id"], match["pairing_id"], match["player2_id"])
+        bot.add_view(view, message_id=match["confirm_message_id"])
+    if pending_matches:
+        print(f"🔁 Znovu připojeno {len(pending_matches)}x potvrzení výsledku (přežije restart)")
+
     try:
         await cards.load_card_pool()
         print(f"🃏 Načteno {len(cards.LEADERS)} setů leaderů, {len(cards.BASES)} setů bází")

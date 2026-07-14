@@ -140,6 +140,8 @@ def init_db():
     _ensure_column(conn, "pairings", "bracket_index", "INTEGER")
 
     _ensure_column(conn, "matches", "pairing_id", "INTEGER REFERENCES pairings(id)")
+    _ensure_column(conn, "matches", "confirm_channel_id", "INTEGER")
+    _ensure_column(conn, "matches", "confirm_message_id", "INTEGER")
 
     conn.commit()
     conn.close()
@@ -471,6 +473,26 @@ def confirm_match(match_id: int):
         conn.execute("UPDATE pairings SET status = 'played' WHERE id = ?", (row["pairing_id"],))
     conn.commit()
     conn.close()
+
+
+def set_confirm_message(match_id: int, channel_id: int, message_id: int):
+    conn = _connect()
+    conn.execute(
+        "UPDATE matches SET confirm_channel_id = ?, confirm_message_id = ? WHERE id = ?",
+        (channel_id, message_id, match_id),
+    )
+    conn.commit()
+    conn.close()
+
+
+def get_pending_matches_with_confirm_message() -> list[dict]:
+    conn = _connect()
+    rows = conn.execute(
+        "SELECT * FROM matches WHERE status = 'pending' "
+        "AND confirm_channel_id IS NOT NULL AND confirm_message_id IS NOT NULL"
+    ).fetchall()
+    conn.close()
+    return [dict(row) for row in rows]
 
 
 def dispute_match(match_id: int):

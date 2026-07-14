@@ -284,7 +284,8 @@ async def _finalize_report(interaction: discord.Interaction, session: ReportSess
     if is_season_stage:
         # Season matches confirm privately over DM so results aren't broadcast to the whole channel.
         try:
-            await session.opponent.send(content=confirm_text, view=confirm_view)
+            confirm_message = await session.opponent.send(content=confirm_text, view=confirm_view)
+            db.set_confirm_message(match_id, confirm_message.channel.id, confirm_message.id)
             return
         except discord.Forbidden:
             pass
@@ -294,26 +295,31 @@ async def _finalize_report(interaction: discord.Interaction, session: ReportSess
             interaction.client.get_channel(int(fallback_channel_id)) if fallback_channel_id else None
         )
         target_channel = fallback_channel or interaction.channel
-        await target_channel.send(
+        confirm_message = await target_channel.send(
             content=(
                 f"{session.opponent.mention}, {confirm_text}\n"
                 f"-# (Nešlo ti to poslat do DM, tak je to tady.)"
             ),
             view=confirm_view,
         )
+        db.set_confirm_message(match_id, confirm_message.channel.id, confirm_message.id)
         return
 
     # Playoff matches always stay public in the channel where the result was reported —
     # bracket progress is meant to be visible, and Top Cut announcements need a real guild channel.
-    await interaction.channel.send(
+    confirm_message = await interaction.channel.send(
         content=f"{session.opponent.mention}, {confirm_text}",
         view=confirm_view,
     )
+    db.set_confirm_message(match_id, confirm_message.channel.id, confirm_message.id)
 
 
 class ConfirmMatchView(discord.ui.View):
     def __init__(self, match_id: int, pairing_id: int | None, opponent_id: int):
-        super().__init__(timeout=86400)
+        # timeout=None + explicit custom_id on every item makes this survive bot restarts,
+        # as long as it's re-registered via bot.add_view(view, message_id=...) in on_ready
+        # (see main.py, which re-attaches one of these for every still-pending match).
+        super().__init__(timeout=None)
         self.match_id = match_id
         self.pairing_id = pairing_id
         self.opponent_id = opponent_id
@@ -324,7 +330,7 @@ class ConfirmMatchView(discord.ui.View):
             return False
         return True
 
-    @discord.ui.button(label="✅ Potvrdit", style=discord.ButtonStyle.success)
+    @discord.ui.button(label="✅ Potvrdit", style=discord.ButtonStyle.success, custom_id="archivist:confirm_match_yes")
     async def confirm(self, interaction: discord.Interaction, button: discord.ui.Button):
         db.confirm_match(self.match_id)
         await interaction.response.edit_message(content="✅ Výsledek potvrzen a zapsán do systému.", view=None)
@@ -348,7 +354,7 @@ class ConfirmMatchView(discord.ui.View):
             if match_row:
                 await topcut.advance_bracket(interaction, pairing_row, match_row)
 
-    @discord.ui.button(label="❌ Neshoduje se", style=discord.ButtonStyle.danger)
+    @discord.ui.button(label="❌ Neshoduje se", style=discord.ButtonStyle.danger, custom_id="archivist:confirm_match_no")
     async def dispute(self, interaction: discord.Interaction, button: discord.ui.Button):
         db.dispute_match(self.match_id)
         await interaction.response.edit_message(
