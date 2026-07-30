@@ -20,6 +20,25 @@ def _round_name(playoff_size: int, round_number: int) -> str:
     return ROUND_NAMES.get(playoff_size, {}).get(round_number, f"kolo {round_number}")
 
 
+def _resolve_topcut_channel(
+    client: discord.Client, fallback: discord.abc.Messageable | None
+) -> discord.abc.Messageable | None:
+    """Prefers the organizer-configured Top Cut channel; falls back to wherever the caller suggests."""
+    channel_id = db.get_setting("topcut_channel_id")
+    if channel_id:
+        channel = client.get_channel(int(channel_id))
+        if channel is not None:
+            return channel
+    return fallback
+
+
+async def set_topcut_channel_cmd(interaction: discord.Interaction):
+    db.set_setting("topcut_channel_id", str(interaction.channel.id))
+    await interaction.response.send_message(
+        "✅ Top Cut (pavouk, postupy, vítěz) se od teď bude oznamovat do tohoto kanálu.", ephemeral=True
+    )
+
+
 async def _seed_and_announce_top_cut(
     client: discord.Client,
     guild: discord.Guild | None,
@@ -64,9 +83,10 @@ async def _seed_and_announce_top_cut(
     lines = [f"**🎯 Top {playoff_size} — {_round_name(playoff_size, 1)}**\n"]
     for p1, p2, _ in bracket:
         lines.append(f"<@{p1}> vs <@{p2}>")
-    if channel is not None:
+    target_channel = _resolve_topcut_channel(client, channel)
+    if target_channel is not None:
         try:
-            await channel.send("\n".join(lines))
+            await target_channel.send("\n".join(lines))
         except discord.Forbidden:
             pass
 
@@ -196,9 +216,11 @@ async def advance_bracket(interaction: discord.Interaction, pairing_row: dict, m
         winner = interaction.guild.get_member(winner_id)
         if winner is not None:
             await roles.grant_role(winner, "CHAMPION_ROLE_ID", "Vítěz sezóny")
-        await interaction.channel.send(
-            f"🎉👑 **Vítěz sezóny „{season['name']}“ je {winner.mention if winner else winner_id}!** Gratulujeme!"
-        )
+        target_channel = _resolve_topcut_channel(interaction.client, interaction.channel)
+        if target_channel is not None:
+            await target_channel.send(
+                f"🎉👑 **Vítěz sezóny „{season['name']}“ je {winner.mention if winner else winner_id}!** Gratulujeme!"
+            )
         await info.refresh_live_season(interaction.client)
         season = db.get_active_season()
         await hall_of_fame.announce_champion(interaction.client, season)
@@ -229,8 +251,10 @@ async def advance_bracket(interaction: discord.Interaction, pairing_row: dict, m
     winner_member = interaction.guild.get_member(winner_id)
     sibling_winner_member = interaction.guild.get_member(sibling_winner_id)
     round_name = _round_name(playoff_size, next_round)
-    await interaction.channel.send(
-        f"➡️ **{round_name.capitalize()}:** "
-        f"{winner_member.mention if winner_member else winner_id} vs "
-        f"{sibling_winner_member.mention if sibling_winner_member else sibling_winner_id}"
-    )
+    target_channel = _resolve_topcut_channel(interaction.client, interaction.channel)
+    if target_channel is not None:
+        await target_channel.send(
+            f"➡️ **{round_name.capitalize()}:** "
+            f"{winner_member.mention if winner_member else winner_id} vs "
+            f"{sibling_winner_member.mention if sibling_winner_member else sibling_winner_id}"
+        )

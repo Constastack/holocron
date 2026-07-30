@@ -290,6 +290,14 @@ async def pairingy_live_cmd(interaction: discord.Interaction):
     await pairings.setup_live_pairings_cmd(interaction)
 
 
+@bot.tree.command(name="top-cut-nastavit", description="[Organizátor] Top Cut (pavouk, postupy, vítěz) se bude oznamovat do tohoto kanálu")
+async def top_cut_nastavit_cmd(interaction: discord.Interaction):
+    if not _is_organizer(interaction):
+        await interaction.response.send_message("Tenhle příkaz je jen pro organizátory.", ephemeral=True)
+        return
+    await topcut.set_topcut_channel_cmd(interaction)
+
+
 @bot.tree.command(name="season-live", description="[Organizátor] Založí živě aktualizované info o sezóně v tomto kanálu")
 async def season_live_cmd(interaction: discord.Interaction):
     if not _is_organizer(interaction):
