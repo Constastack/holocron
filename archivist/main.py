@@ -73,6 +73,8 @@ async def on_ready():
         season_reminder.start()
     if not daily_backup.is_running():
         daily_backup.start()
+    if not deadline_watcher.is_running():
+        deadline_watcher.start()
 
     print("=" * 40)
 
@@ -173,6 +175,16 @@ async def daily_backup():
 
 @daily_backup.before_loop
 async def before_daily_backup():
+    await bot.wait_until_ready()
+
+
+@tasks.loop(minutes=30)
+async def deadline_watcher():
+    await topcut.auto_start_top_cut_if_deadline_passed(bot)
+
+
+@deadline_watcher.before_loop
+async def before_deadline_watcher():
     await bot.wait_until_ready()
 
 
