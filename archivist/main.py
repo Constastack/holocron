@@ -13,6 +13,7 @@ import backup
 import cards
 import community
 import db
+import decks
 import hall_of_fame
 import info
 import pairings
@@ -196,6 +197,21 @@ async def ping(interaction: discord.Interaction):
 @bot.tree.command(name="vysledek", description="Nahlásit výsledek zápasu")
 async def vysledek(interaction: discord.Interaction):
     await report_flow.start_report(interaction)
+
+
+@bot.tree.command(name="deck-pridat", description="Uložit si deck (leader/base) pro rychlejší hlášení výsledků")
+async def deck_pridat(interaction: discord.Interaction):
+    await decks.add_deck_cmd(interaction)
+
+
+@bot.tree.command(name="moje-decky", description="Zobrazí tvé uložené decky")
+async def moje_decky(interaction: discord.Interaction):
+    await decks.list_decks_cmd(interaction)
+
+
+@bot.tree.command(name="deck-smazat", description="Smaže jeden z tvých uložených decků")
+async def deck_smazat(interaction: discord.Interaction):
+    await decks.delete_deck_cmd(interaction)
 
 
 @bot.tree.command(name="register", description="Zaregistruj se do ligy")

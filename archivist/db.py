@@ -111,6 +111,14 @@ def init_db():
             key TEXT PRIMARY KEY,
             unlocked_at TEXT NOT NULL
         );
+
+        CREATE TABLE IF NOT EXISTS player_decks (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            player_id INTEGER NOT NULL REFERENCES players(discord_id),
+            leader TEXT NOT NULL,
+            base TEXT NOT NULL,
+            created_at TEXT NOT NULL
+        );
     """)
     _ensure_column(conn, "players", "karabast_nick", "TEXT")
     _ensure_column(conn, "players", "name", "TEXT")
@@ -473,6 +481,43 @@ def confirm_match(match_id: int):
         conn.execute("UPDATE pairings SET status = 'played' WHERE id = ?", (row["pairing_id"],))
     conn.commit()
     conn.close()
+
+
+def add_player_deck(player_id: int, leader: str, base: str) -> int:
+    conn = _connect()
+    cur = conn.execute(
+        "INSERT INTO player_decks (player_id, leader, base, created_at) VALUES (?, ?, ?, ?)",
+        (player_id, leader, base, datetime.now().isoformat()),
+    )
+    conn.commit()
+    deck_id = cur.lastrowid
+    conn.close()
+    return deck_id
+
+
+def get_player_decks(player_id: int) -> list[dict]:
+    conn = _connect()
+    rows = conn.execute(
+        "SELECT * FROM player_decks WHERE player_id = ? ORDER BY id", (player_id,)
+    ).fetchall()
+    conn.close()
+    return [dict(row) for row in rows]
+
+
+def get_player_deck(deck_id: int) -> dict | None:
+    conn = _connect()
+    row = conn.execute("SELECT * FROM player_decks WHERE id = ?", (deck_id,)).fetchone()
+    conn.close()
+    return dict(row) if row else None
+
+
+def delete_player_deck(deck_id: int, player_id: int) -> bool:
+    conn = _connect()
+    cur = conn.execute("DELETE FROM player_decks WHERE id = ? AND player_id = ?", (deck_id, player_id))
+    conn.commit()
+    deleted = cur.rowcount > 0
+    conn.close()
+    return deleted
 
 
 def set_confirm_message(match_id: int, channel_id: int, message_id: int):

@@ -116,11 +116,62 @@ async def start_report(interaction: discord.Interaction):
             return
         session.pairing_id = pairing_id
         session.opponent = opponent
-        await _ask_leader_set(interaction, session, side="my")
+        await _ask_deck_for_side(interaction, session, side="my")
 
     view = SingleSelectView(session.reporter.id, options, "Vyber zápas", on_pairing_choice)
     await interaction.response.send_message(
         "**Krok 1** — Který zápas chceš nahlásit?", view=view, ephemeral=True
+    )
+
+
+async def _ask_deck_for_side(interaction: discord.Interaction, session: ReportSession, side: str):
+    player_id = session.reporter.id if side == "my" else session.opponent.id
+    decks = db.get_player_decks(player_id)
+    label = "svůj" if side == "my" else "soupeřův"
+
+    if not decks:
+        await _ask_leader_set(interaction, session, side)
+        return
+
+    options = [
+        discord.SelectOption(label=f'{d["leader"]} / {d["base"]}', value=str(d["id"])) for d in decks
+    ]
+    options.append(discord.SelectOption(label="➕ Jiný / nový deck", value="manual"))
+
+    async def on_choice(interaction: discord.Interaction, value: str):
+        if value == "manual":
+            await _ask_leader_set(interaction, session, side)
+            return
+        deck = db.get_player_deck(int(value))
+        if deck is None:
+            await _ask_leader_set(interaction, session, side)
+            return
+        setattr(session, f"{side}_leader", deck["leader"])
+        setattr(session, f"{side}_base", deck["base"])
+        if side == "my":
+            await _ask_deck_for_side(interaction, session, side="opp")
+        else:
+            await _ask_result(interaction, session)
+
+    view = SingleSelectView(session.reporter.id, options, f"Vyber {label} deck", on_choice)
+    await interaction.response.edit_message(content=f"Vyber {label} deck:", view=view)
+
+
+async def _offer_save_deck(interaction: discord.Interaction, session: ReportSession):
+    choices = [("💾 Uložit pro příště", "save"), ("Nechci ukládat", "skip")]
+
+    async def on_choice(interaction: discord.Interaction, value: str):
+        if value == "save":
+            db.add_player_deck(session.reporter.id, session.my_leader, session.my_base)
+        await _ask_deck_for_side(interaction, session, side="opp")
+
+    view = ButtonChoiceView(session.reporter.id, choices, on_choice)
+    await interaction.response.edit_message(
+        content=(
+            f"Chceš si uložit **{session.my_leader} / {session.my_base}** jako svůj deck pro příště? "
+            f"Příště ho pak jen vybereš ze seznamu."
+        ),
+        view=view,
     )
 
 
@@ -177,7 +228,7 @@ async def _ask_base_card(interaction: discord.Interaction, session: ReportSessio
     async def on_card(interaction: discord.Interaction, name: str):
         setattr(session, f"{side}_base", name)
         if side == "my":
-            await _ask_leader_set(interaction, session, side="opp")
+            await _offer_save_deck(interaction, session)
         else:
             await _ask_result(interaction, session)
 
