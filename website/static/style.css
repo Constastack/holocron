@@ -1,0 +1,312 @@
+:root {
+    --bg: #05060a;
+    --panel: #10121a;
+    --panel-border: #26293a;
+    --gold: #d4af37;
+    --gold-soft: #f0d78c;
+    --blue-glow: #6fd3ff;
+    --text: #e8e6df;
+    --text-dim: #9a9baa;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    color: var(--text);
+    font-family: "Segoe UI", "Trebuchet MS", Arial, sans-serif;
+    min-height: 100%;
+}
+
+/* No background on html/body on purpose — the browser propagates a body
+   background to the viewport canvas, which paints *under* the fixed,
+   negative-z-index .starfield below and hides it entirely. */
+
+/* ---------- Starfield background ---------- */
+
+.starfield {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background: radial-gradient(ellipse at top, #0c1020 0%, #05060a 60%, #000 100%);
+    overflow: hidden;
+}
+
+.starfield::before,
+.starfield::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-repeat: repeat;
+    background-image:
+        radial-gradient(1px 1px at 10% 20%, #fff 100%, transparent 100%),
+        radial-gradient(1px 1px at 30% 70%, #fff 100%, transparent 100%),
+        radial-gradient(1.5px 1.5px at 50% 15%, #fff 100%, transparent 100%),
+        radial-gradient(1px 1px at 70% 45%, #fff 100%, transparent 100%),
+        radial-gradient(1px 1px at 85% 80%, #fff 100%, transparent 100%),
+        radial-gradient(1.5px 1.5px at 15% 90%, #fff 100%, transparent 100%),
+        radial-gradient(1px 1px at 60% 60%, #fff 100%, transparent 100%),
+        radial-gradient(1px 1px at 90% 25%, #fff 100%, transparent 100%),
+        radial-gradient(1px 1px at 40% 40%, #fff 100%, transparent 100%),
+        radial-gradient(1.5px 1.5px at 25% 55%, #fff 100%, transparent 100%);
+    background-size: 600px 600px;
+    opacity: 0.5;
+    animation: twinkle 6s ease-in-out infinite alternate;
+}
+
+.starfield::after {
+    background-size: 900px 900px;
+    background-position: 200px 150px;
+    opacity: 0.3;
+    animation-duration: 9s;
+    animation-direction: alternate-reverse;
+}
+
+@keyframes twinkle {
+    from { opacity: 0.25; }
+    to { opacity: 0.6; }
+}
+
+/* ---------- Layout ---------- */
+
+.site-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.25rem 2rem;
+    border-bottom: 1px solid var(--panel-border);
+    background: rgba(5, 6, 10, 0.7);
+    backdrop-filter: blur(6px);
+}
+
+.brand {
+    color: var(--gold-soft);
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 1.2rem;
+    letter-spacing: 0.03em;
+}
+
+.site-header nav a {
+    color: var(--text-dim);
+    text-decoration: none;
+    margin-left: 1.5rem;
+    transition: color 0.15s ease;
+}
+
+.site-header nav a:hover {
+    color: var(--blue-glow);
+}
+
+.content {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2.5rem 1.5rem 4rem;
+}
+
+.site-footer {
+    text-align: center;
+    padding: 1.5rem;
+    color: var(--text-dim);
+    font-size: 0.85rem;
+    border-top: 1px solid var(--panel-border);
+}
+
+/* ---------- Hero ---------- */
+
+.hero {
+    text-align: center;
+    padding: 2rem 0 3rem;
+}
+
+.hero h1 {
+    font-size: 2.4rem;
+    margin: 0 0 0.5rem;
+    color: var(--gold-soft);
+    text-shadow: 0 0 20px rgba(212, 175, 55, 0.35);
+}
+
+.hero p {
+    color: var(--text-dim);
+    margin: 0;
+}
+
+/* ---------- Sections & cards ---------- */
+
+.section {
+    margin-bottom: 3rem;
+}
+
+.section.narrow {
+    max-width: 480px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.section h1, .section h2 {
+    color: var(--gold-soft);
+    border-bottom: 1px solid var(--panel-border);
+    padding-bottom: 0.5rem;
+}
+
+.card-list {
+    display: grid;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.card {
+    display: block;
+    background: var(--panel);
+    border: 1px solid var(--panel-border);
+    border-radius: 10px;
+    padding: 1rem 1.25rem;
+    text-decoration: none;
+    color: var(--text);
+    transition: border-color 0.15s ease, transform 0.15s ease;
+}
+
+.card:hover {
+    border-color: var(--blue-glow);
+    transform: translateY(-1px);
+}
+
+.card h3 {
+    margin: 0 0 0.35rem;
+    color: var(--text);
+}
+
+.meta {
+    color: var(--text-dim);
+    font-size: 0.85rem;
+}
+
+.more-link {
+    display: inline-block;
+    margin-top: 1rem;
+    color: var(--blue-glow);
+    text-decoration: none;
+}
+
+.more-link:hover {
+    text-decoration: underline;
+}
+
+.empty {
+    color: var(--text-dim);
+    font-style: italic;
+}
+
+/* ---------- Article ---------- */
+
+.article-detail h1 {
+    color: var(--gold-soft);
+    margin-bottom: 0.25rem;
+}
+
+.article-body {
+    margin-top: 1.5rem;
+    line-height: 1.7;
+    white-space: pre-wrap;
+}
+
+/* ---------- Tables ---------- */
+
+.event-table, .admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+}
+
+.event-table th, .event-table td,
+.admin-table th, .admin-table td {
+    text-align: left;
+    padding: 0.6rem 0.75rem;
+    border-bottom: 1px solid var(--panel-border);
+}
+
+.event-table th, .admin-table th {
+    color: var(--gold-soft);
+    font-weight: 600;
+}
+
+.event-table a, .admin-table a {
+    color: var(--blue-glow);
+}
+
+.actions {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.actions form {
+    margin: 0;
+}
+
+/* ---------- Forms ---------- */
+
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.form label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    color: var(--text-dim);
+    font-size: 0.9rem;
+}
+
+.form input, .form textarea {
+    background: var(--panel);
+    border: 1px solid var(--panel-border);
+    border-radius: 6px;
+    padding: 0.6rem 0.75rem;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 1rem;
+}
+
+.form input:focus, .form textarea:focus {
+    outline: none;
+    border-color: var(--blue-glow);
+}
+
+button, .button {
+    background: var(--gold);
+    color: #1a1a1a;
+    border: none;
+    border-radius: 6px;
+    padding: 0.6rem 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    width: fit-content;
+    transition: filter 0.15s ease;
+}
+
+button:hover, .button:hover {
+    filter: brightness(1.1);
+}
+
+.link-button {
+    background: none;
+    border: none;
+    color: #e2716f;
+    padding: 0;
+    font: inherit;
+    cursor: pointer;
+    text-decoration: underline;
+    width: auto;
+}
+
+.error {
+    color: #e2716f;
+}

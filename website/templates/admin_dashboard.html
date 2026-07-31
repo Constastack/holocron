@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Admin — Projekt Holocron{% endblock %}
+
+{% block content %}
+<section class="section">
+    <h1>⚙️ Administrace</h1>
+    <div class="card-list">
+        <a class="card" href="{{ url_for('admin_articles') }}">
+            <h3>📰 Články</h3>
+            <span class="meta">Přidat, upravit nebo smazat článek</span>
+        </a>
+        <a class="card" href="{{ url_for('admin_events') }}">
+            <h3>🏆 Kalendář turnajů</h3>
+            <span class="meta">Přidat, upravit nebo smazat turnaj</span>
+        </a>
+    </div>
+    <a class="more-link" href="{{ url_for('admin_logout') }}">Odhlásit se</a>
+</section>
+{% endblock %}

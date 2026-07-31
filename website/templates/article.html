@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}{{ article.title }} — Projekt Holocron{% endblock %}
+
+{% block content %}
+<article class="article-detail">
+    <h1>{{ article.title }}</h1>
+    <span class="meta">{{ article.published_at[:10] }}</span>
+    <div class="article-body">{{ article.body }}</div>
+</article>
+<a class="more-link" href="{{ url_for('index') }}">← Zpět na úvod</a>
+{% endblock %}

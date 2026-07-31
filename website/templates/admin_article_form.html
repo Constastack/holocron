@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}{% if article %}Upravit článek{% else %}Nový článek{% endif %} — Admin{% endblock %}
+
+{% block content %}
+<section class="section narrow">
+    <h1>{% if article %}✏️ Upravit článek{% else %}➕ Nový článek{% endif %}</h1>
+    <form method="post" class="form">
+        <label>Název
+            <input type="text" name="title" value="{{ article.title if article else '' }}" required>
+        </label>
+        <label>Text
+            <textarea name="body" rows="14" required>{{ article.body if article else '' }}</textarea>
+        </label>
+        <button type="submit">💾 Uložit</button>
+    </form>
+    <a class="more-link" href="{{ url_for('admin_articles') }}">← Zpět na seznam</a>
+</section>
+{% endblock %}

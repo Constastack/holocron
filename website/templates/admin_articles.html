@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Články — Admin{% endblock %}
+
+{% block content %}
+<section class="section">
+    <h1>📰 Články</h1>
+    <a class="button" href="{{ url_for('admin_article_add') }}">➕ Nový článek</a>
+
+    {% if articles %}
+        <table class="admin-table">
+            <thead><tr><th>Název</th><th>Publikováno</th><th></th></tr></thead>
+            <tbody>
+                {% for article in articles %}
+                <tr>
+                    <td>{{ article.title }}</td>
+                    <td>{{ article.published_at[:10] }}</td>
+                    <td class="actions">
+                        <a href="{{ url_for('admin_article_edit', article_id=article.id) }}">Upravit</a>
+                        <form method="post" action="{{ url_for('admin_article_delete', article_id=article.id) }}"
+                              onsubmit="return confirm('Opravdu smazat článek {{ article.title }}?');">
+                            <button type="submit" class="link-button">Smazat</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p class="empty">Zatím žádné články.</p>
+    {% endif %}
+    <a class="more-link" href="{{ url_for('admin_dashboard') }}">← Zpět do administrace</a>
+</section>
+{% endblock %}

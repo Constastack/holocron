@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="cs">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Projekt Holocron{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="starfield"></div>
+
+    <header class="site-header">
+        <a class="brand" href="{{ url_for('index') }}">🤖 Projekt Holocron</a>
+        <nav>
+            <a href="{{ url_for('index') }}">Domů</a>
+            <a href="{{ url_for('calendar') }}">Kalendář</a>
+        </nav>
+    </header>
+
+    <main class="content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="site-footer">
+        <span>Projekt Holocron — Dragon Squadron</span>
+    </footer>
+</body>
+</html>

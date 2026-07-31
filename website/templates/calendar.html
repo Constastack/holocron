@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Kalendář turnajů — Projekt Holocron{% endblock %}
+
+{% block content %}
+<section class="section">
+    <h1>🏆 Kalendář turnajů</h1>
+    {% if events %}
+        <table class="event-table">
+            <thead>
+                <tr>
+                    <th>Datum</th>
+                    <th>Turnaj</th>
+                    <th>Formát</th>
+                    <th>Místo</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for event in events %}
+                <tr>
+                    <td>{{ event.event_date }}</td>
+                    <td>{{ event.name }}</td>
+                    <td>{{ event.format or "—" }}</td>
+                    <td>{{ event.location or "—" }}</td>
+                    <td>
+                        {% if event.link %}<a href="{{ event.link }}" target="_blank" rel="noopener">Detail →</a>{% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p class="empty">Zatím žádné naplánované turnaje.</p>
+    {% endif %}
+</section>
+{% endblock %}

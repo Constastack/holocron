@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}Kalendář — Admin{% endblock %}
+
+{% block content %}
+<section class="section">
+    <h1>🏆 Kalendář turnajů</h1>
+    <a class="button" href="{{ url_for('admin_event_add') }}">➕ Nový turnaj</a>
+
+    {% if events %}
+        <table class="admin-table">
+            <thead><tr><th>Datum</th><th>Turnaj</th><th>Místo</th><th></th></tr></thead>
+            <tbody>
+                {% for event in events %}
+                <tr>
+                    <td>{{ event.event_date }}</td>
+                    <td>{{ event.name }}</td>
+                    <td>{{ event.location or "—" }}</td>
+                    <td class="actions">
+                        <a href="{{ url_for('admin_event_edit', event_id=event.id) }}">Upravit</a>
+                        <form method="post" action="{{ url_for('admin_event_delete', event_id=event.id) }}"
+                              onsubmit="return confirm('Opravdu smazat turnaj {{ event.name }}?');">
+                            <button type="submit" class="link-button">Smazat</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p class="empty">Zatím žádné turnaje.</p>
+    {% endif %}
+    <a class="more-link" href="{{ url_for('admin_dashboard') }}">← Zpět do administrace</a>
+</section>
+{% endblock %}

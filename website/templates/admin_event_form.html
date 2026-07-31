@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}{% if event %}Upravit turnaj{% else %}Nový turnaj{% endif %} — Admin{% endblock %}
+
+{% block content %}
+<section class="section narrow">
+    <h1>{% if event %}✏️ Upravit turnaj{% else %}➕ Nový turnaj{% endif %}</h1>
+    <form method="post" class="form">
+        <label>Název turnaje
+            <input type="text" name="name" value="{{ event.name if event else '' }}" required>
+        </label>
+        <label>Datum (RRRR-MM-DD)
+            <input type="date" name="event_date" value="{{ event.event_date if event else '' }}" required>
+        </label>
+        <label>Formát
+            <input type="text" name="format" value="{{ event.format if event else '' }}" placeholder="Premier / Limited / Eternal">
+        </label>
+        <label>Místo
+            <input type="text" name="location" value="{{ event.location if event else '' }}" placeholder="Obchod, město">
+        </label>
+        <label>Odkaz (Melee, Discord, ...)
+            <input type="url" name="link" value="{{ event.link if event else '' }}">
+        </label>
+        <button type="submit">💾 Uložit</button>
+    </form>
+    <a class="more-link" href="{{ url_for('admin_events') }}">← Zpět na seznam</a>
+</section>
+{% endblock %}
