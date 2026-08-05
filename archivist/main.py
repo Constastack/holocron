@@ -404,6 +404,24 @@ async def vysledek_opravit_cmd(interaction: discord.Interaction, zapas_id: int, 
     await report_flow.fix_match_cmd(interaction, zapas_id, vyhry1, vyhry2)
 
 
+@bot.tree.command(name="vysledek-zadat", description="[Organizátor] Rovnou zapíše a potvrdí výsledek zápasu (když to nešlo přes /vysledek)")
+async def vysledek_zadat_cmd(
+    interaction: discord.Interaction,
+    hrac1: discord.Member,
+    hrac2: discord.Member,
+    vyhry1: int,
+    vyhry2: int,
+    leader1: str | None = None,
+    base1: str | None = None,
+    leader2: str | None = None,
+    base2: str | None = None,
+):
+    if not _is_organizer(interaction):
+        await interaction.response.send_message("Tenhle příkaz je jen pro organizátory.", ephemeral=True)
+        return
+    await report_flow.record_match_cmd(interaction, hrac1, hrac2, vyhry1, vyhry2, leader1, base1, leader2, base2)
+
+
 @bot.tree.command(name="hall-of-fame-live", description="[Organizátor] Založí živě aktualizovaný Hall of Fame v tomto kanálu")
 async def hall_of_fame_live_cmd(interaction: discord.Interaction):
     if not _is_organizer(interaction):

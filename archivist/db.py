@@ -399,6 +399,18 @@ def get_pending_pairings_for_player(season_id: int, player_id: int) -> list[dict
     return [dict(row) for row in rows]
 
 
+def find_pending_pairing_between(season_id: int, player_a_id: int, player_b_id: int) -> dict | None:
+    conn = _connect()
+    row = conn.execute(
+        """SELECT * FROM pairings
+           WHERE season_id = ? AND status = 'pending'
+             AND ((player1_id = ? AND player2_id = ?) OR (player1_id = ? AND player2_id = ?))""",
+        (season_id, player_a_id, player_b_id, player_b_id, player_a_id),
+    ).fetchone()
+    conn.close()
+    return dict(row) if row else None
+
+
 def get_all_pairings(season_id: int) -> list[dict]:
     conn = _connect()
     rows = conn.execute(

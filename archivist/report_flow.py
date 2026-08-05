@@ -391,22 +391,10 @@ class ConfirmMatchView(SafeView):
         pairing_row = db.get_pairing(self.pairing_id) if self.pairing_id is not None else None
         if pairing_row is None:
             return
-
-        if pairing_row["stage"] == "season":
-            season = db.get_active_season()
-            await standings.refresh_live_standings(interaction.client, season)
-            await info.refresh_live_season(interaction.client)
-            await stats.refresh_live_statistics(interaction.client, season)
-            await reminders.refresh_live_reminder(interaction.client, season)
-            await pairings.refresh_live_pairings(interaction.client)
-            match_row = db.get_confirmed_match_for_pairing(self.pairing_id)
-            if match_row:
-                await achievements.check_match_played(interaction, season, match_row)
-                await community.check_match_milestones(interaction.client)
-        elif pairing_row["stage"] == "playoff":
-            match_row = db.get_confirmed_match_for_pairing(self.pairing_id)
-            if match_row:
-                await topcut.advance_bracket(interaction, pairing_row, match_row)
+        match_row = db.get_confirmed_match_for_pairing(self.pairing_id)
+        if match_row is None:
+            return
+        await _apply_post_confirm_effects(interaction, pairing_row, match_row)
 
     @discord.ui.button(label="❌ Neshoduje se", style=discord.ButtonStyle.danger, custom_id="archivist:confirm_match_no")
     async def dispute(self, interaction: discord.Interaction, button: discord.ui.Button):
@@ -468,6 +456,22 @@ async def set_confirm_fallback_channel_cmd(interaction: discord.Interaction):
     )
 
 
+async def _apply_post_confirm_effects(interaction: discord.Interaction, pairing_row: dict, match_row: dict):
+    """Shared refresh/achievement/bracket-advance logic run after any match gets confirmed
+    (player confirmation, admin fix, or admin direct entry)."""
+    if pairing_row["stage"] == "season":
+        season = db.get_active_season()
+        await standings.refresh_live_standings(interaction.client, season)
+        await info.refresh_live_season(interaction.client)
+        await stats.refresh_live_statistics(interaction.client, season)
+        await reminders.refresh_live_reminder(interaction.client, season)
+        await pairings.refresh_live_pairings(interaction.client)
+        await achievements.check_match_played(interaction, season, match_row)
+        await community.check_match_milestones(interaction.client)
+    elif pairing_row["stage"] == "playoff":
+        await topcut.advance_bracket(interaction, pairing_row, match_row)
+
+
 async def fix_match_cmd(interaction: discord.Interaction, zapas_id: int, vyhry1: int, vyhry2: int):
     match = db.get_match(zapas_id)
     if match is None:
@@ -485,15 +489,64 @@ async def fix_match_cmd(interaction: discord.Interaction, zapas_id: int, vyhry1:
     pairing_row = db.get_pairing(updated_match["pairing_id"]) if updated_match.get("pairing_id") else None
     if pairing_row is None:
         return
+    await _apply_post_confirm_effects(interaction, pairing_row, updated_match)
 
-    if pairing_row["stage"] == "season":
-        season = db.get_active_season()
-        await standings.refresh_live_standings(interaction.client, season)
-        await info.refresh_live_season(interaction.client)
-        await stats.refresh_live_statistics(interaction.client, season)
-        await reminders.refresh_live_reminder(interaction.client, season)
-        await pairings.refresh_live_pairings(interaction.client)
-        await achievements.check_match_played(interaction, season, updated_match)
-        await community.check_match_milestones(interaction.client)
-    elif pairing_row["stage"] == "playoff":
-        await topcut.advance_bracket(interaction, pairing_row, updated_match)
+
+async def record_match_cmd(
+    interaction: discord.Interaction,
+    hrac1: discord.Member,
+    hrac2: discord.Member,
+    vyhry1: int,
+    vyhry2: int,
+    leader1: str | None,
+    base1: str | None,
+    leader2: str | None,
+    base2: str | None,
+):
+    if vyhry1 == vyhry2:
+        await interaction.response.send_message("Zápas nemůže skončit remízou.", ephemeral=True)
+        return
+
+    season = db.get_active_season()
+    if season["status"] != "in_progress":
+        await interaction.response.send_message("Sezóna právě neběží.", ephemeral=True)
+        return
+
+    pairing_row = db.find_pending_pairing_between(season["id"], hrac1.id, hrac2.id)
+    if pairing_row is None:
+        await interaction.response.send_message(
+            f"Nenašel jsem žádný nedohraný pairing mezi {hrac1.display_name} a {hrac2.display_name} "
+            f"v aktuální sezóně.",
+            ephemeral=True,
+        )
+        return
+
+    db.get_or_create_player(hrac1.id, hrac1.display_name)
+    db.get_or_create_player(hrac2.id, hrac2.display_name)
+
+    by_player_id = {
+        hrac1.id: {"wins": vyhry1, "leader": leader1 or "Neznámý", "base": base1 or "Neznámá"},
+        hrac2.id: {"wins": vyhry2, "leader": leader2 or "Neznámý", "base": base2 or "Neznámá"},
+    }
+    p1 = by_player_id[pairing_row["player1_id"]]
+    p2 = by_player_id[pairing_row["player2_id"]]
+
+    match_id = db.record_match(
+        pairing_id=pairing_row["id"],
+        reporter_id=interaction.user.id,
+        player1_id=pairing_row["player1_id"],
+        player1_leader=p1["leader"],
+        player1_base=p1["base"],
+        player1_wins=p1["wins"],
+        player2_id=pairing_row["player2_id"],
+        player2_leader=p2["leader"],
+        player2_base=p2["base"],
+        player2_wins=p2["wins"],
+    )
+    db.confirm_match(match_id)
+    match_row = db.get_match(match_id)
+
+    await interaction.response.send_message(
+        f"✅ Zápas zapsán a potvrzen: {hrac1.mention} {vyhry1}:{vyhry2} {hrac2.mention}."
+    )
+    await _apply_post_confirm_effects(interaction, pairing_row, match_row)

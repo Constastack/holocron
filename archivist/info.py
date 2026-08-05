@@ -47,7 +47,8 @@ HELP_TEXT_ORGANIZER_2 = (
     "`/profil-upravit hrac` — opraví profil hráče (překlepy apod.)\n"
     "`/hlasovani-otevrit typ` — otevře hlasování o Community/Fair Play Award\n"
     "`/hlasovani-vysledky typ` — uzavře hlasování a vyhlásí vítěze\n"
-    "`/reminder-live` — založí živý přehled nedohraných zápasů"
+    "`/reminder-live` — založí živý přehled nedohraných zápasů\n"
+    "`/vysledek-zadat hrac1 hrac2 vyhry1 vyhry2` — rovnou zapíše a potvrdí výsledek (když nešlo přes `/vysledek`)"
 )
 
 STATUS_LABELS = {
