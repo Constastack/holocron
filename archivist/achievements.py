@@ -48,13 +48,25 @@ async def award(guild: discord.Guild, player_id: int, key: str) -> bool:
     return await _notify(guild, player_id, key)
 
 
+async def _resolve_member(guild: discord.Guild | None, member_id: int) -> discord.Member | None:
+    if guild is None:
+        return None
+    member = guild.get_member(member_id)
+    if member is not None:
+        return member
+    try:
+        return await guild.fetch_member(member_id)
+    except discord.NotFound:
+        return None
+
+
 async def _notify(guild: discord.Guild, player_id: int, key: str) -> bool:
     """Awards the achievement and DMs the player if it's new. Returns True if newly earned."""
     is_new = db.award_achievement(player_id, key)
     if not is_new:
         return False
     emoji, name, description = ACHIEVEMENTS[key]
-    member = guild.get_member(player_id)
+    member = await _resolve_member(guild, player_id)
     if member is not None:
         try:
             await member.send(f"{emoji} **Nový achievement: {name}!**\n{description}")

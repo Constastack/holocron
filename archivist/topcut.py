@@ -20,6 +20,20 @@ def _round_name(playoff_size: int, round_number: int) -> str:
     return ROUND_NAMES.get(playoff_size, {}).get(round_number, f"kolo {round_number}")
 
 
+async def _resolve_member(guild: discord.Guild | None, member_id: int) -> discord.Member | None:
+    """guild.get_member() misses whenever the bot's member cache hasn't seen this player recently
+    (no privileged Members intent) — fall back to a direct API fetch instead of silently giving up."""
+    if guild is None:
+        return None
+    member = guild.get_member(member_id)
+    if member is not None:
+        return member
+    try:
+        return await guild.fetch_member(member_id)
+    except discord.NotFound:
+        return None
+
+
 def _resolve_topcut_channel(
     client: discord.Client, fallback: discord.abc.Messageable | None
 ) -> discord.abc.Messageable | None:
@@ -91,7 +105,7 @@ async def _seed_and_announce_top_cut(
             pass
 
     for pid in ranked_ids:
-        member = guild.get_member(pid) if guild is not None else None
+        member = await _resolve_member(guild, pid)
         if member is None:
             continue
         await roles.grant_role(member, "PLAYOFF_ROLE_ID", "Postup do Top Cutu")
@@ -213,7 +227,7 @@ async def advance_bracket(interaction: discord.Interaction, pairing_row: dict, m
             champion_leader=winner_leader,
             final_score=final_score,
         )
-        winner = interaction.guild.get_member(winner_id)
+        winner = await _resolve_member(interaction.guild, winner_id)
         if winner is not None:
             await roles.grant_role(winner, "CHAMPION_ROLE_ID", "Vítěz sezóny")
         target_channel = _resolve_topcut_channel(interaction.client, interaction.channel)
@@ -248,8 +262,8 @@ async def advance_bracket(interaction: discord.Interaction, pairing_row: dict, m
 
     db.create_playoff_round(season["id"], next_round, [(winner_id, sibling_winner_id, next_index)])
 
-    winner_member = interaction.guild.get_member(winner_id)
-    sibling_winner_member = interaction.guild.get_member(sibling_winner_id)
+    winner_member = await _resolve_member(interaction.guild, winner_id)
+    sibling_winner_member = await _resolve_member(interaction.guild, sibling_winner_id)
     round_name = _round_name(playoff_size, next_round)
     target_channel = _resolve_topcut_channel(interaction.client, interaction.channel)
     if target_channel is not None:
