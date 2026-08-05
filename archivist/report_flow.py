@@ -10,6 +10,7 @@ import reminders
 import standings
 import stats
 import topcut
+from ui_base import SafeView
 
 
 class ReportSession:
@@ -30,7 +31,7 @@ class ReportSession:
         self.deck_link: str | None = None
 
 
-class _OwnerOnlyView(discord.ui.View):
+class _OwnerOnlyView(SafeView):
     def __init__(self, owner_id: int, timeout: float):
         super().__init__(timeout=timeout)
         self.owner_id = owner_id
@@ -366,7 +367,7 @@ async def _finalize_report(interaction: discord.Interaction, session: ReportSess
     db.set_confirm_message(match_id, confirm_message.channel.id, confirm_message.id)
 
 
-class ConfirmMatchView(discord.ui.View):
+class ConfirmMatchView(SafeView):
     def __init__(self, match_id: int, pairing_id: int | None, opponent_id: int):
         # timeout=None + explicit custom_id on every item makes this survive bot restarts,
         # as long as it's re-registered via bot.add_view(view, message_id=...) in on_ready

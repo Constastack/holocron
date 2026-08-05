@@ -8,6 +8,7 @@ import community
 import db
 import levels
 import roles
+from ui_base import SafeView
 
 _BADGE_ROLES = [
     ("🏅 Member", "VERIFIED_ROLE_ID"),
@@ -66,7 +67,7 @@ class CountrySelect(discord.ui.Select):
         await self.view.on_country_selected(interaction, self.values[0])
 
 
-class CountrySelectView(discord.ui.View):
+class CountrySelectView(SafeView):
     def __init__(self, owner_id: int, karabast_nick: str, name: str, surname: str, after_submit=None):
         super().__init__(timeout=300)
         self.owner_id = owner_id
@@ -207,7 +208,7 @@ class AdminCountrySelect(discord.ui.Select):
         await self.view.on_country_selected(interaction, self.values[0])
 
 
-class AdminCountrySelectView(discord.ui.View):
+class AdminCountrySelectView(SafeView):
     def __init__(self, target: discord.Member, karabast_nick: str, name: str, surname: str, current_country: str):
         super().__init__(timeout=300)
         self.target = target

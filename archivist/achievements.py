@@ -5,6 +5,7 @@ import discord
 
 import community
 import db
+from ui_base import SafeView
 
 ACHIEVEMENTS = {
     "rookie": ("🌱", "Rookie", "První odehraný zápas"),
@@ -161,7 +162,7 @@ async def refer_cmd(interaction: discord.Interaction, referrer: discord.Member):
     await community.check_referral_milestones(interaction.client)
 
 
-class ReferralView(discord.ui.View):
+class ReferralView(SafeView):
     def __init__(self, owner_id: int, after_done=None):
         super().__init__(timeout=300)
         self.owner_id = owner_id

@@ -2,6 +2,7 @@ import discord
 
 import db
 import players
+from ui_base import SafeView
 
 HELP_TEXT_PLAYER = (
     "`/register` — zaregistruj se do ligy (Karabast nick, jméno, země)\n"
@@ -56,7 +57,7 @@ STATUS_LABELS = {
 }
 
 
-class WithdrawConfirmView(discord.ui.View):
+class WithdrawConfirmView(SafeView):
     def __init__(self, owner_id: int):
         super().__init__(timeout=60)
         self.owner_id = owner_id
@@ -78,7 +79,7 @@ class WithdrawConfirmView(discord.ui.View):
         await interaction.response.edit_message(content="Zrušeno, zůstáváš v sezóně.", view=None)
 
 
-class OtherPlayerSelectView(discord.ui.View):
+class OtherPlayerSelectView(SafeView):
     def __init__(self, owner_id: int):
         super().__init__(timeout=120)
         self.owner_id = owner_id
@@ -98,7 +99,7 @@ class OtherPlayerSelectView(discord.ui.View):
         await players.profile(interaction, member)
 
 
-class ProfileChoiceView(discord.ui.View):
+class ProfileChoiceView(SafeView):
     def __init__(self, owner_id: int):
         super().__init__(timeout=120)
         self.owner_id = owner_id
@@ -120,7 +121,7 @@ class ProfileChoiceView(discord.ui.View):
         )
 
 
-class PairingsChoiceView(discord.ui.View):
+class PairingsChoiceView(SafeView):
     def __init__(self, owner_id: int):
         super().__init__(timeout=120)
         self.owner_id = owner_id
@@ -148,7 +149,7 @@ class PairingsChoiceView(discord.ui.View):
         await interaction.response.send_message(embed=embed)
 
 
-class SeasonActionsView(discord.ui.View):
+class SeasonActionsView(SafeView):
     def __init__(self):
         super().__init__(timeout=None)
 

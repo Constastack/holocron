@@ -2,6 +2,7 @@ import discord
 
 import achievements
 import db
+from ui_base import SafeView
 
 AWARD_NAMES = {
     "community": "❤️ Community Award",
@@ -29,7 +30,7 @@ class VoteSelect(discord.ui.Select):
         )
 
 
-class VoteView(discord.ui.View):
+class VoteView(SafeView):
     def __init__(self, season_id: int, award_type: str, candidates: list[dict]):
         super().__init__(timeout=None)
         self.add_item(VoteSelect(season_id, award_type, candidates))

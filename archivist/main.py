@@ -40,6 +40,24 @@ def _is_organizer(interaction: discord.Interaction) -> bool:
     return interaction.user.guild_permissions.manage_guild
 
 
+@bot.tree.error
+async def on_app_command_error(interaction: discord.Interaction, error: app_commands.AppCommandError):
+    # Without this, an unhandled exception in a slash command leaves the interaction with
+    # no response — Discord just shows "thinking..." forever with no error and no log entry.
+    print(f"⚠️ Chyba v příkazu /{interaction.command.name if interaction.command else '?'}: {error!r}")
+    import traceback
+
+    traceback.print_exception(type(error), error, error.__traceback__)
+    message = "⚠️ Něco se pokazilo. Zkus to prosím znovu, nebo se ozvi organizátorovi."
+    try:
+        if interaction.response.is_done():
+            await interaction.followup.send(message, ephemeral=True)
+        else:
+            await interaction.response.send_message(message, ephemeral=True)
+    except discord.HTTPException:
+        pass
+
+
 @bot.event
 async def on_ready():
     print("=" * 40)

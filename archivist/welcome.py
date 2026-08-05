@@ -3,9 +3,10 @@ import discord
 import db
 import pairings
 import players
+from ui_base import SafeView
 
 
-class WelcomeView(discord.ui.View):
+class WelcomeView(SafeView):
     def __init__(self):
         super().__init__(timeout=None)
 
